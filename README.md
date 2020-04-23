@@ -6,4 +6,4 @@
 
 ### Autenticação
 
-<div align="center">Made with Node</div>
+<div align="center">Made with NodeJS</div>
