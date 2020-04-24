@@ -1,5 +1,21 @@
 const Pool = require("../db/");
 
+//User.getByEmail
+const getByEmail = async (email) => {
+  try {
+    const { rows } = await Pool.query("SELECT * FROM users WHERE email = $1 ", [
+      email,
+    ]);
+
+    return rows;
+  } catch (error) {
+    return {
+      error: 503,
+      message: "Internal Error",
+    };
+  }
+};
+
 //User.getMyself
 const getMyself = async () => {};
 
@@ -55,4 +71,12 @@ const confirm = async () => {};
 //User.disable
 const disable = async () => {};
 
-module.exports = { getMyself, get, store, update, confirm, disable };
+module.exports = {
+  getByEmail,
+  getMyself,
+  get,
+  store,
+  update,
+  confirm,
+  disable,
+};

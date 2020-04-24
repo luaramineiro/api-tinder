@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const Controller = require("./src/session/controller");
+const Controller = require("../src/session/controller");
 const routes = Router();
 
 routes.post("/auth", Controller.signIn);
