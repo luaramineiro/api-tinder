@@ -6,4 +6,8 @@
 
 ### Autenticação
 
+### Sendinblue
+
+[Documentação](https://github.com/sendinblue/APIv3-nodejs-library)
+
 <div align="center">Made with NodeJS</div>

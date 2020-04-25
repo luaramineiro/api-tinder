@@ -1,4 +1,4 @@
-const Pool = require("../db/");
+const Pool = require("../db");
 
 //User.getMyself
 const getMyself = async (email) => {

@@ -1,3 +1,5 @@
+const axios = require('axios');
+const { API_KEY_SEND_EMAIL, URL_SEND_EMAIL } = require("../sendinblue/config");
 const User = require("./model");
 
 //Controller.getUserProfile
@@ -35,7 +37,7 @@ const createUser = async (req, res) => {
   const { name, username, email, password_hash, phone } = req.body;
 
   if (!name || !username || !email || !phone) {
-    return res.json({ error: 400, message: "Empty required fiels" });
+    return res.json({ error: 400, message: "Empty required fields" });
   }
 
   const user = { name, username, email, password_hash, phone };
@@ -78,7 +80,48 @@ const updateUserProfile = async (req, res) => {
 };
 
 //Controller.confirmUser
-const confirmUser = async () => { };
+const confirmUser = async (req, res) => {
+  const id = req.body.id;
+  const response = await User.get(id);
+  if (response.length) {
+
+    const user = response[0];
+
+    try {
+      const responseSendEmail = await axios({
+        method: "POST",
+        url: URL_SEND_EMAIL,
+        headers: { "content-type": "application/json", "api-key": API_KEY_SEND_EMAIL },
+        data: {
+          sender: { "name": "Tinder", "email": "tinder@cubos.io" },
+          to: [{ "email": `${user.email}`, "name": `${user.name}` }],
+          replyTo: { "email": "luara.mineiro@cubos.io", "name": "Luara Mineiro" },
+          subject: "Email confirmação Tinder Cubos",
+          htmlContent: "<body> <p>Hellouuu,</p> Bem vindo ao tinder! </body>",
+          textContent: "Teste tinder api"
+        }
+      });
+
+      return res.json({
+        messageId: responseSendEmail.data.messageId,
+        message: "E-mail send with success",
+      });
+    } catch (error) {
+      //console.error(error.response.status);
+      //console.error(error.response.data);
+
+      return res.json({
+        error: 400,
+        message: "Bad request to Sendinblue",
+      });
+    }
+  }
+
+  return res.json({
+    error: 409,
+    message: "User Not Found",
+  });
+};
 
 //Controller.disableUser
 const disableUser = async (req, res) => {
