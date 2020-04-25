@@ -9,11 +9,13 @@ CREATE TABLE IF NOT EXISTS users (
     document_id VARCHAR(11),
     google_id VARCHAR(120),
     facebook_id VARCHAR(120),
-    deleted_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    deleted_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 SELECT * FROM users;
 
 delete FROM users;
+
+DROP TABLE users;

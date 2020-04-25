@@ -62,7 +62,7 @@ const updateUserProfile = async (req, res) => {
     return res.json({ error: 503, message: "Internal Error" });
   }
 
-  const user = { name, username, email, phone, update_at: JSON.parse(response[0].update_at) };
+  const user = { name, username, email, phone, update_at: new Date(response[0].update_at) };
 
   console.log(response[0]);
   console.log(user);
