@@ -9,9 +9,6 @@ const comparePassword = async (string, password) => {
 
 const signIn = async (req, res) => {
   const { email, password } = req.body;
-
-  console.log(req.body);
-
   if (!email || !password) {
     res.json({
       error: 200,
@@ -19,7 +16,7 @@ const signIn = async (req, res) => {
     });
   }
 
-  const users = User.getByEmail(email);
+  const users = await User.getByEmail(email);
 
   if (users.length) {
     const user = users[0];
@@ -29,6 +26,7 @@ const signIn = async (req, res) => {
       const token = jwt.sign({ email }, secret, { expiresIn });
 
       return res.json({
+        id: user.id,
         name: user.name,
         username: user.username,
         email: user.email,
