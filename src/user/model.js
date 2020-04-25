@@ -1,7 +1,7 @@
 const Pool = require("../db/");
 
-//User.getByEmail
-const getByEmail = async (email) => {
+//User.getMyself
+const getMyself = async (email) => {
   try {
     const { rows } = await Pool.query("SELECT * FROM users WHERE email = $1 ", [
       email,
@@ -15,9 +15,6 @@ const getByEmail = async (email) => {
     };
   }
 };
-
-//User.getMyself
-const getMyself = async () => {};
 
 //User.get
 const get = async (id) => {
@@ -36,7 +33,7 @@ const get = async (id) => {
 
 //User.store
 const store = async (user) => {
-  const { name, username, email, password_hash, phone, document_id } = user;
+  const { name, username, email, password_hash, phone } = user;
   try {
     const response = await Pool.query("SELECT id FROM users WHERE email = $1", [
       email,
@@ -48,12 +45,13 @@ const store = async (user) => {
       };
     }
 
-    const {
-      rows,
-    } = await Pool.query(
-      "INSERT INTO (name, username, email, password_hash, phone, document_id)",
-      [name, username, email, password_hash, phone, document_id]
+    const { rows } = await Pool.query(
+      "INSERT INTO users (name, username, email, password_hash, phone) VALUES ($1, $2, $3, $4, $5)  RETURNING *",
+      [name, username, email, password_hash, phone]
     );
+
+    return rows;
+
   } catch (error) {
     return {
       error: 503,
@@ -63,16 +61,41 @@ const store = async (user) => {
 };
 
 //User.update
-const update = async () => {};
+const update = async (user) => {
+  const { id, name, username, email, phone } = user;
+
+  try {
+    const response = await Pool.query("SELECT id FROM users WHERE id = $1", [id]);
+    if (!response.rows.length) {
+      return {
+        error: 409,
+        message: "User Not Found",
+      };
+    }
+
+    const { rows } = await Pool.query(
+      "UPDATE users SET name = $1, username = $2, email = $3, phone = $4, updated_at = NOW() WHERE id = $5  RETURNING *",
+      [name, username, email, phone, id],
+    );
+
+    return rows;
+
+  } catch (error) {
+    console.log(error);
+    return {
+      error: 503,
+      message: "Internal Error",
+    };
+  }
+};
 
 //User.confirm
-const confirm = async () => {};
+const confirm = async () => { };
 
 //User.disable
-const disable = async () => {};
+const disable = async () => { };
 
 module.exports = {
-  getByEmail,
   getMyself,
   get,
   store,

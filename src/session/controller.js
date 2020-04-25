@@ -16,19 +16,17 @@ const signIn = async (req, res) => {
     });
   }
 
-  const users = await User.getByEmail(email);
+  const users = await User.getMyself(email);
 
   if (users.length) {
     const user = users[0];
-    const doesPasswordMatch = await comparePassword(password, user.password);
-
+    const doesPasswordMatch = await comparePassword(password, user.password_hash);
+    const id = user.id;
     if (doesPasswordMatch) {
-      const token = jwt.sign({ email }, secret, { expiresIn });
+      const token = jwt.sign({ id }, secret, { expiresIn });
 
       return res.json({
-        id: user.id,
-        name: user.name,
-        username: user.username,
+        id: id,
         email: user.email,
         token,
       });
@@ -46,8 +44,8 @@ const signIn = async (req, res) => {
   });
 };
 
-const googleSignIn = async () => {};
+const googleSignIn = async () => { };
 
-const facebookSignIn = async () => {};
+const facebookSignIn = async () => { };
 
 module.exports = { signIn, googleSignIn, facebookSignIn };
