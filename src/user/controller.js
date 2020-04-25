@@ -8,6 +8,11 @@ const getUserProfile = async (req, res) => {
     const { name, username, email, phone } = response[0];
     return res.json({ name, username, email, phone });
   }
+
+  return res.json({
+    error: 409,
+    message: "User Not Found",
+  });
 };
 
 //Controller.getProfile
@@ -18,6 +23,11 @@ const getProfile = async (req, res) => {
     const { name, username, email, phone } = response[0];
     return res.json({ name, username, email, phone });
   }
+
+  return res.json({
+    error: 409,
+    message: "User Not Found",
+  });
 };
 
 //Controller.createUser
@@ -62,10 +72,7 @@ const updateUserProfile = async (req, res) => {
     return res.json({ error: 503, message: "Internal Error" });
   }
 
-  const user = { name, username, email, phone, update_at: new Date(response[0].update_at) };
-
-  console.log(response[0]);
-  console.log(user);
+  const user = { name, username, email, phone, update_at: response[0].updated_at.toISOString() };
 
   return res.json(user);
 };
@@ -74,7 +81,18 @@ const updateUserProfile = async (req, res) => {
 const confirmUser = async () => { };
 
 //Controller.disableUser
-const disableUser = async () => { };
+const disableUser = async (req, res) => {
+  const id = req.body.id;
+  const response = await User.disable(id);
+  if (response.length) {
+    const user = {
+      username: response[0].username,
+      email: response[0].email,
+      deleted_at: response[0].deleted_at.toISOString()
+    };
+    return res.json(user);
+  }
+};
 
 module.exports = {
   getUserProfile,

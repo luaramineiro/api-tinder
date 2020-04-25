@@ -3,7 +3,7 @@ const Pool = require("../db/");
 //User.getMyself
 const getMyself = async (email) => {
   try {
-    const { rows } = await Pool.query("SELECT * FROM users WHERE email = $1 ", [
+    const { rows } = await Pool.query("SELECT * FROM users WHERE email = $1 and deleted_at IS NULL", [
       email,
     ]);
 
@@ -93,7 +93,19 @@ const update = async (user) => {
 const confirm = async () => { };
 
 //User.disable
-const disable = async () => { };
+const disable = async (id) => {
+  try {
+    const { rows } = await Pool.query("UPDATE users SET deleted_at = NOW() WHERE id = $1  RETURNING *", [
+      id,
+    ]);
+    return rows;
+  } catch (error) {
+    return {
+      error: 503,
+      message: "Internal Error",
+    };
+  }
+};
 
 module.exports = {
   getMyself,

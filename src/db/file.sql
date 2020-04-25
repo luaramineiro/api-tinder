@@ -18,4 +18,5 @@ SELECT * FROM users;
 
 delete FROM users;
 
-DROP TABLE users;
+UPDATE users SET deleted_at = NULL 
+WHERE id = 'b6b35b1b-18ae-45ee-94b7-d2f0f37a364c'
