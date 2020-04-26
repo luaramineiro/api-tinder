@@ -4,19 +4,12 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(50) NOT NULL,
     username VARCHAR(20) NOT NULL,
     email VARCHAR(40) NOT NULL UNIQUE,
-    password_hash VARCHAR(60) NOT NULL,
-    phone VARCHAR(12) NOT NULL,
+    password_hash VARCHAR(60),
+    phone VARCHAR(12),
     document_id VARCHAR(11),
-    google_id VARCHAR(120),
-    facebook_id VARCHAR(120),
+    google_id VARCHAR(200),
+    facebook_id VARCHAR(200),
     deleted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
-
-SELECT * FROM users;
-
-delete FROM users;
-
-UPDATE users SET deleted_at = NULL 
-WHERE id = 'b6b35b1b-18ae-45ee-94b7-d2f0f37a364c'

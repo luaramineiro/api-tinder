@@ -3,8 +3,8 @@ const jwt = require("jsonwebtoken");
 const open = require('open');
 const User = require("../user/model");
 const { google } = require('googleapis');
-const { OAuth2Client } = require('google-auth-library');
-const { SECRET, EXPIRES_IN, OAUTH2_CLIENT_ID, OAUTH2_CLIENT_SECRET, OAUTH2_CALLBACK } = require("./config");
+const oauth2 = google.oauth2('v2');
+const config = require("./config");
 
 const comparePassword = async (string, password) => {
   return bcrypt.compare(string, password);
@@ -25,8 +25,10 @@ const signIn = async (req, res) => {
     const user = users[0];
     const doesPasswordMatch = await comparePassword(password, user.password_hash);
     const id = user.id;
+    const expiresIn = config.EXPIRES_IN;
+    const secret = config.SECRET;
     if (doesPasswordMatch) {
-      const token = jwt.sign({ id }, SECRET, { EXPIRES_IN });
+      const token = jwt.sign({ id }, secret, { expiresIn });
 
       return res.json({
         id: id,
@@ -47,25 +49,26 @@ const signIn = async (req, res) => {
   });
 };
 
-// create an oAuth client to authorize the API call.  Secrets are kept in a `keys.json` file,
-// which should be downloaded from the Google Developers Console.
 function getOAuthClientGoogle() {
-  return new OAuth2Client(OAUTH2_CLIENT_ID, OAUTH2_CLIENT_SECRET, OAUTH2_CALLBACK);
+  return new google.auth.OAuth2(
+    config.OAUTH2_CLIENT_ID,
+    config.OAUTH2_CLIENT_SECRET,
+    config.OAUTH2_CALLBACK[0]
+  );
 };
 
 const googleSignIn = async (req, res) => {
 
   try {
-    const oAuth2Client = await getOAuthClientGoogle();
 
-    // Generate the url that will be used for the consent dialog.
-    const authorizeUrl = oAuth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: 'https://www.googleapis.com/auth/userinfo.profile',
+    const oAuth2Client = await getOAuthClientGoogle();
+    const authUrl = oAuth2Client.generateAuthUrl({
+      access_type: "offline",
+      scope: config.SCOPES,
     });
 
     // open the browser to the authorize url to start the workflow
-    open(authorizeUrl, { wait: false }).then(cp => cp.unref());
+    open(authUrl, { wait: false }).then(cp => cp.unref());
 
   } catch (error) {
     console.log(error);
@@ -81,27 +84,47 @@ const googleOAuthCallback = async (req, res) => {
   const oAuth2Client = await getOAuthClientGoogle();
   const code = req.query.code;
 
-  oAuth2Client.getToken(code, function (err, tokens) {
-    // tokens contains an access_token and an optional refresh_token. Save them.
-    // get profile user and save
+  try {
+    const { tokens } = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokens);
 
-    if (!err) {
-      oAuth2Client.setCredentials(tokens);
+    const userInfo = await oauth2.userinfo.get({ auth: oAuth2Client });
 
-      oAuth2Client.user
+    const user = {
+      name: userInfo.data.name,
+      username: userInfo.data.given_name.toLowerCase() + '.' + userInfo.data.family_name.toLowerCase(),
+      email: userInfo.data.email,
+      google_id: tokens.access_token,
+    };
 
-      return res.json({
-        token: tokens.access_token,
-        email: "email",
-        message: "Login with Google Successful",
-      });
+    const response = await User.store(user);
+
+    if (!response.length || response.error) {
+      if (response.error === 409) {
+        return res.json(response);
+      }
+
+      return res.json({ error: 503, message: "Internal Error" });
     }
+
+    const id = response[0].id;
+    const expiresIn = config.EXPIRES_IN;
+    const token = jwt.sign({ id }, config.SECRET, { expiresIn });
+
+    return res.json({
+      user: { name: user.name, email: user.email },
+      token: token,
+      message: "Login with Google Successful",
+    });
+
+  } catch (error) {
+    console.log(error);
 
     return res.json({
       error: 404,
       message: "Login with Google Failed",
     });
-  });
+  }
 };
 
 const facebookSignIn = async () => { };

@@ -33,11 +33,12 @@ const get = async (id) => {
 
 //User.store
 const store = async (user) => {
-  const { name, username, email, password_hash, phone } = user;
+  const { name, username, email, password_hash, phone, google_id } = user;
   try {
     const response = await Pool.query("SELECT id FROM users WHERE email = $1", [
       email,
     ]);
+
     if (response.rows.length) {
       return {
         error: 409,
@@ -46,13 +47,19 @@ const store = async (user) => {
     }
 
     const { rows } = await Pool.query(
-      "INSERT INTO users (name, username, email, password_hash, phone) VALUES ($1, $2, $3, $4, $5)  RETURNING *",
-      [name, username, email, password_hash, phone]
-    );
+      "INSERT INTO users (name, username, email, password_hash, phone, google_id) VALUES ($1, $2, $3, $4, $5, $6)  RETURNING *", [
+      name,
+      username,
+      email,
+      (password_hash) ? password_hash : null,
+      (phone) ? phone : null,
+      (google_id) ? google_id : null
+    ]);
 
     return rows;
 
   } catch (error) {
+    console.log(error);
     return {
       error: 503,
       message: "Internal Error",
