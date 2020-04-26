@@ -1,4 +1,5 @@
 /node_modules
 /src/sendinblue/config.js
+/src/session/config.js
 /src/db/config.js
 config.js
